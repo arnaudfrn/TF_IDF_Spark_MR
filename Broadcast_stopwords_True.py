@@ -6,6 +6,13 @@ Created on Mon Feb 25 10:01:50 2019
 @author: Arnaud
 """
 
+#Alexis - Annabelle, voilà les fichiers python à run.
+# Vous devenez d'abord mettre les fichier .txt (de la bbc) sur le cluster
+#Il faut lancer Pyspark sur le cluster en lancant la commande Pyspark
+#Ensuite faites un "copy-paste" du code en dessous EN CHANGEANT LE PATH DU FICHIER
+#il faut ajouter un time checker
+
+
 #Broadcast dict - stopwords cleaning
 
 data_text_files = sc.wholeTextFiles("bbc/business/", 8) #loading sets of files in the folder bbc
@@ -52,5 +59,8 @@ idf_score = sc.broadcast(dict(idf_dict)) #using broadcasting variable for a map 
 
 # Creaing a RDD with key (file, word) and value (tf, idf)
 tf_idf_raw = rdd_term_freq.map(lambda x: ((x[0][0],x[0][1]), (x[1], idf_score.value[x[0][1]])))
-tf_idf_dict = tf_idf_raw.map(lambda x: (x[0], (x[1][0]/x[1][1]))) #get the tf-idf
+#brodcasting the number of element in the corpus
+nb_doc = data_text_files.count() #counting the number of files
+doc_nb = sc.broadcast(nb_doc)
+tf_idf_dict = tf_idf_raw.map(lambda x: (x[0], (x[1][0] * m.log10(doc_nb.value/x[1][1])))) #get the tf-idftf_idf_dict_broadcast = tf_idf_dict.collectAsMap() #RDD as a dict
 tf_idf_dict_broadcast = tf_idf_dict.collectAsMap() #RDD as a dict
